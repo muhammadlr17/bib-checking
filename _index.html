@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check-In - Input BIB</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #2c3e50;
+        color: white;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      h1 {
+        font-size: 3.5em;
+        margin-bottom: 30px;
+      }
+      input {
+        font-size: 3em;
+        padding: 20px;
+        width: 80%;
+        max-width: 600px;
+        text-align: center;
+        border: none;
+        border-radius: 10px;
+      }
+      .info {
+        margin-top: 40px;
+        font-size: 1.5em;
+        color: #bdc3c7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Fun Run Check-In</h1>
+    <p>Scan atau ketik BIB Number</p>
+    <input type="text" id="bibInput" autofocus placeholder="..." />
+
+    <div class="info">Tekan Enter → hasil muncul di halaman berikutnya</div>
+
+    <script>
+      let participants = [];
+
+      fetch("peserta.json?t=" + Date.now())
+        .then((r) => r.json())
+        .then((data) => {
+          participants = data;
+        })
+        .catch((err) => console.error("Gagal load peserta.json", err));
+
+      document
+        .getElementById("bibInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            const code = this.value.trim();
+            if (!code) return;
+
+            window.location.href =
+              "result.html?code=" + encodeURIComponent(code);
+
+            this.value = "";
+            this.focus();
+          }
+        });
+    </script>
+  </body>
+</html>

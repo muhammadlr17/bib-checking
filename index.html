@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fun Run 2025 - Check-In</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 100vh;
+        background: url("bg.jpg") center/cover no-repeat;
+        font-family: "Arial Rounded MT Bold", Arial, sans-serif;
+        overflow: hidden;
+        position: relative;
+        color: white;
+      }
+
+      /* Input tersembunyi tapi tetap bisa menerima scan */
+      #hiddenInput {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+      }
+
+      /* Overlay hasil */
+      #result {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.7s ease;
+        pointer-events: none;
+      }
+      #result.active {
+        opacity: 1;
+      }
+
+      .card {
+        text-align: center;
+        padding: 60px 80px;
+        border-radius: 30px;
+        width: 90%;
+        max-width: 1000px;
+      }
+      .card h1 {
+        font-size: 180px;
+        color: #112d6a;
+        margin-bottom: 20px;
+        line-height: 1;
+      }
+      .card h2 {
+        font-size: 70px;
+        color: #000;
+      }
+      .welcome {
+        font-size: 6.5vw;
+        color: #ffd700;
+        margin-top: 40px;
+        animation: pulse 2s infinite;
+      }
+
+      /* Jika tidak ditemukan */
+      .notfound h1 {
+        color: #ff3366;
+        text-shadow: 0 0 30px #ff3366;
+      }
+      .notfound .welcome {
+        color: #ff3366;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      /* Teks kecil saat menunggu */
+      .waiting {
+        position: absolute;
+        bottom: 40px;
+        width: 100%;
+        text-align: center;
+        font-size: 2rem;
+        color: rgba(255, 255, 255, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Input tersembunyi – scanner akan langsung mengisinya -->
+    <input type="text" id="hiddenInput" autofocus autocomplete="off" />
+
+    <!-- Hasil check-in -->
+    <div id="result">
+      <div class="card" id="card">
+        <h1>Mohon tunggu...</h1>
+      </div>
+    </div>
+
+    <!-- <div class="waiting">Menunggu scan BIB berikutnya...</div> -->
+
+    <script>
+      const input = document.getElementById("hiddenInput");
+      const result = document.getElementById("result");
+      const card = document.getElementById("card");
+
+      let participants = [];
+      let timeout;
+
+      // Load data peserta (dengan cache-buster biar selalu fresh)
+      fetch("peserta.json?t=" + Date.now())
+        .then((r) => r.json())
+        .then((data) => (participants = data))
+        .catch((err) => console.error("Gagal load peserta.json", err));
+
+      // Fungsi utama saat ada scan
+      function processBib(bib) {
+        const peserta = participants.find((p) => p.no === bib);
+
+        // Hapus timeout sebelumnya
+        clearTimeout(timeout);
+
+        if (peserta) {
+          card.className = "card";
+          card.innerHTML = `
+          <h1>${bib}</h1>
+          <h2>${peserta.nama}</h2>
+        `;
+        } else {
+          card.className = "card notfound";
+          card.innerHTML = `
+          <h1>${bib}</h1>
+          <h2>Peserta Tidak Ditemukan</h2>
+          <p class="welcome">Silakan hubungi panitia</p>
+        `;
+        }
+
+        // Tampilkan hasil
+        result.classList.add("active");
+
+        // Otomatis hilang setelah 7 detik
+        timeout = setTimeout(() => {
+          result.classList.remove("active");
+          input.value = "";
+          input.focus();
+        }, 7000);
+      }
+
+      // Tangkap scan (bisa langsung Enter atau scanner otomatis kirim Enter)
+      input.addEventListener("input", function () {
+        const value = this.value.trim();
+        if (value.length >= 3) {
+          // minimal 3 digit BIB
+          processBib(value);
+          this.value = ""; // kosongkan supaya siap scan lagi
+        }
+      });
+
+      // Jaga-jaga kalau scanner tidak kirim Enter, tetap pakai keypress
+      input.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          const value = this.value.trim();
+          if (value) {
+            processBib(value);
+            this.value = "";
+          }
+          e.preventDefault();
+        }
+      });
+
+      // Selalu fokus ke input tersembunyi
+      window.onload = () => input.focus();
+      document.addEventListener("click", () => input.focus());
+    </script>
+  </body>
+</html>

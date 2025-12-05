@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fun Run 2025 - Check In</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 100vh;
+        background: url("bg.jpg") center/cover no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Arial Rounded MT Bold", Arial, sans-serif;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* background: rgba(0, 0, 0, 0.65); */
+        /* backdrop-filter: blur(5px); */
+        padding: 60px 80px;
+        border-radius: 30px;
+        text-align: center;
+        width: 90%;
+        max-width: 1000px;
+        /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        border: 4px solid rgba(255, 255, 255, 0.3); */
+      }
+
+      h1 {
+        font-size: 180px;
+        color: #112d6a;
+        margin-bottom: 20px;
+        line-height: 1;
+      }
+      h2 {
+        font-size: 64px;
+        color: #000000;
+      }
+      .welcome {
+        font-size: 6vw;
+        color: #ffd700;
+        margin-top: 30px;
+        animation: pulse 2s infinite;
+      }
+      .notfound h1 {
+        color: #ff3366;
+        text-shadow: 0 0 20px #ff3366;
+      }
+      .notfound .welcome {
+        color: #ff3366;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .back {
+        position: absolute;
+        bottom: 30px;
+        font-size: 1.8rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay" id="result">
+      <h1>Mohon tunggu...</h1>
+    </div>
+
+    <div class="back">Tekan Esc atau Backspace untuk kembali</div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code") || "";
+
+      const result = document.getElementById("result");
+
+      if (!code) {
+        result.innerHTML = "<h1>Tanpa Data</h1>";
+      } else {
+        fetch("peserta.json?t=" + Date.now())
+          .then((r) => r.json())
+          .then((participants) => {
+            const peserta = participants.find((p) => p.no === code);
+
+            if (peserta) {
+              result.className = "overlay";
+              result.innerHTML = `
+            <h1>${code}</h1>
+            <h2>${peserta.nama}</h2>
+          `;
+            } else {
+              result.className = "overlay notfound";
+              result.innerHTML = `
+            <h1>${code}</h1>
+            <h2>Peserta Tidak Ditemukan</h2>
+            <p class="welcome">Silakan hubungi panitia</p>
+          `;
+            }
+          })
+          .catch((err) => {
+            result.innerHTML = "<h1>Error load data</h1>";
+          });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" || e.key === "Backspace") {
+          window.location.href = "index.html";
+        }
+      });
+
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 8000);
+    </script>
+  </body>
+</html>
