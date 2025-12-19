@@ -149,12 +149,12 @@
         // Tampilkan hasil
         result.classList.add("active");
 
-        // Otomatis hilang setelah 10 detik
+        // Otomatis hilang setelah 30 detik
         timeout = setTimeout(() => {
           result.classList.remove("active");
           input.value = "";
           input.focus();
-        }, 10000);
+        }, 30000);
       }
 
       // Tangkap scan (bisa langsung Enter atau scanner otomatis kirim Enter)
